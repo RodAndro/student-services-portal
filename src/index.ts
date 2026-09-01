@@ -1,8 +1,10 @@
+type StudentStatus = "active" | "inactive";
+
 interface Student {
   id: number;
   name: string;
   email: string;
-  status: "active" | "inactive";
+  status: StudentStatus;
 }
 
 interface ApiResponse<T> {
@@ -14,15 +16,12 @@ function formatStudent(student: Student): string {
   return `Student ID: ${student.id}\nName: ${student.name}\nEmail: ${student.email}\nStatus: ${student.status}`;
 }
 
-function formatStudentStatus(status: Student["status"] | string): string {
-  switch (status) {
-    case "active":
-      return "Active Student";
-    case "inactive":
-      return "Inactive Student";
-    default:
-      return "Unknown Status";
+function getStudentStatusLabel(status: StudentStatus): string {
+  if (status === "active") {
+    return "Active Student";
   }
+
+  return "Inactive Student";
 }
 
 function isValidStudent(value: unknown): value is Student {
@@ -86,9 +85,8 @@ const invalidStudentObjectMissingName = {
 };
 
 console.log("Formatted student:\n" + formatStudent(sampleStudent));
-console.log("Status label for active:", formatStudentStatus("active"));
-console.log("Status label for inactive:", formatStudentStatus("inactive"));
-console.log("Status label for invalid:", formatStudentStatus("suspended"));
+console.log("Status label for active:", getStudentStatusLabel("active"));
+console.log("Status label for inactive:", getStudentStatusLabel("inactive"));
 console.log("Single student response:", singleStudentResponse);
 console.log("Student list response:", studentListResponse);
 console.log("Valid object check:", isValidStudent(validStudentObject));
