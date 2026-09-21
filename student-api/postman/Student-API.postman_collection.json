@@ -1,0 +1,1268 @@
+{
+  "info": {
+    "_postman_id": "b7c1f0e2-3a4d-4c6b-9f21-studentapiv1",
+    "name": "Student Information Management API",
+    "description": "REST API collection for the Student Information Management API (Laravel 12 + Sanctum).\n\nBase URL is `/api/v1`. Authentication uses a Sanctum bearer token.\n\nHow to use:\n1. Select the `Student API (local)` environment.\n2. Run the `Authentication` folder first (top to bottom). `Login (admin)` saves `{{token}}`, and the other logins save `{{student_token}}`, `{{instructor_token}}`, and `{{instructor2_token}}`.\n3. Run the remaining folders in order. Every create request saves the new id into an environment variable (for example `{{student_id}}`) so later requests chain automatically.\n4. Folders include both successful and deliberately failing requests (401, 403, 404, 409, 422).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api/v1" }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "description": "Login, current user, and logout. Also demonstrates 401 responses and token revocation.",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Success envelope', () => pm.expect(body.success).to.be.true);",
+              "pm.test('Token returned', () => pm.expect(body.data.token).to.be.a('string'));",
+              "pm.environment.set('token', body.data.token);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "auth": { "type": "noauth" },
+            "description": "Authenticates as the seeded Administrator and saves the token to {{token}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (student)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.environment.set('student_token', body.data.token);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"password\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "auth": { "type": "noauth" },
+            "description": "Authenticates as the seeded Student and saves the token to {{student_token}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (instructor)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.environment.set('instructor_token', body.data.token);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"instructor@example.com\",\n  \"password\": \"password\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "auth": { "type": "noauth" },
+            "description": "Authenticates as Instructor One (the owner of the offering created later) and saves {{instructor_token}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (instructor 2)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.environment.set('instructor2_token', body.data.token);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"instructor2@example.com\",\n  \"password\": \"password\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "auth": { "type": "noauth" },
+            "description": "Authenticates as Instructor Two (not the owner of the created offering). Used to demonstrate 403."
+          },
+          "response": []
+        },
+        {
+          "name": "Login - invalid password (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+              "const body = pm.response.json();",
+              "pm.test('Failure envelope', () => pm.expect(body.success).to.be.false);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"wrong-password\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "auth": { "type": "noauth" },
+            "description": "Wrong password must return 422 and never reveal whether the email exists."
+          },
+          "response": []
+        },
+        {
+          "name": "Me (authenticated)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] },
+            "description": "Returns the authenticated user using the collection's bearer token ({{token}})."
+          },
+          "response": []
+        },
+        {
+          "name": "Me - no token (401)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 401', () => pm.response.to.have.status(401));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] },
+            "auth": { "type": "noauth" },
+            "description": "Protected endpoint must reject an unauthenticated request with 401."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (temporary token for logout)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('temp_token', pm.response.json().data.token);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "auth": { "type": "noauth" },
+            "description": "Issues a throwaway token so the logout test does not revoke the main {{token}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout (revokes token)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{temp_token}}", "type": "string" }] },
+            "description": "Revokes the temporary token."
+          },
+          "response": []
+        },
+        {
+          "name": "Me - revoked token (401)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 401', () => pm.response.to.have.status(401));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{temp_token}}", "type": "string" }] },
+            "description": "After logout, the revoked token must no longer work (401)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Students",
+      "description": "CRUD, search, filter, sort, pagination, validation, and object-level authorization for students.",
+      "item": [
+        {
+          "name": "List students (search)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Paginated meta present', () => pm.expect(body.meta).to.have.property('total'));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students?search=a&per_page=5", "host": ["{{base_url}}"], "path": ["students"], "query": [{ "key": "search", "value": "a" }, { "key": "per_page", "value": "5" }] },
+            "description": "Partial-match search across name fields, student number, and email."
+          },
+          "response": []
+        },
+        {
+          "name": "List students (filter + sort)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students?year_level=3&status=ACTIVE&sort=last_name&direction=asc", "host": ["{{base_url}}"], "path": ["students"], "query": [{ "key": "year_level", "value": "3" }, { "key": "status", "value": "ACTIVE" }, { "key": "sort", "value": "last_name" }, { "key": "direction", "value": "asc" }] },
+            "description": "Exact-match filters plus an allow-listed sort field and direction."
+          },
+          "response": []
+        },
+        {
+          "name": "List students (pagination)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Page 2 returned', () => pm.expect(body.meta.current_page).to.eql(2));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students?page=2&per_page=10", "host": ["{{base_url}}"], "path": ["students"], "query": [{ "key": "page", "value": "2" }, { "key": "per_page", "value": "10" }] },
+            "description": "Pagination metadata: current_page, per_page, total, last_page, from, to."
+          },
+          "response": []
+        },
+        {
+          "name": "Create student (201)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.environment.set('student_id', body.data.id);",
+              "pm.environment.set('student_number', body.data.student_number);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"student_number\": \"2026-{{$timestamp}}\",\n  \"first_name\": \"Postman\",\n  \"middle_name\": \"Test\",\n  \"last_name\": \"Student\",\n  \"birth_date\": \"2004-05-14\",\n  \"email\": \"postman.student@example.com\",\n  \"contact_number\": \"09171234567\",\n  \"address\": \"123 Sample Street\",\n  \"program_id\": {{program_id}},\n  \"year_level\": 2,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/students", "host": ["{{base_url}}"], "path": ["students"] },
+            "description": "Creates a student. {{program_id}} defaults to a seeded program id (1). Saves {{student_id}} and {{student_number}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Get student",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students/{{student_id}}", "host": ["{{base_url}}"], "path": ["students", "{{student_id}}"] },
+            "description": "Retrieves the student created above."
+          },
+          "response": []
+        },
+        {
+          "name": "Update student",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"year_level\": 4,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/students/{{student_id}}", "host": ["{{base_url}}"], "path": ["students", "{{student_id}}"] },
+            "description": "Partial update; only supplied fields change."
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate student number (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+              "pm.test('Validation errors present', () => pm.expect(pm.response.json().errors).to.have.property('student_number'));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"student_number\": \"{{student_number}}\",\n  \"first_name\": \"Duplicate\",\n  \"last_name\": \"Student\",\n  \"program_id\": {{program_id}},\n  \"year_level\": 1,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/students", "host": ["{{base_url}}"], "path": ["students"] },
+            "description": "Reuses the student number just created; the unique rule must reject it."
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid email (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+              "pm.test('Email error present', () => pm.expect(pm.response.json().errors).to.have.property('email'));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"student_number\": \"2026-{{$timestamp}}\",\n  \"first_name\": \"Bad\",\n  \"last_name\": \"Email\",\n  \"email\": \"not-an-email\",\n  \"program_id\": {{program_id}},\n  \"year_level\": 1,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/students", "host": ["{{base_url}}"], "path": ["students"] },
+            "description": "Invalid email must fail validation and must not be saved."
+          },
+          "response": []
+        },
+        {
+          "name": "Student not found (404)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students/999999", "host": ["{{base_url}}"], "path": ["students", "999999"] },
+            "description": "A non-existent id returns 404, not an HTML error page."
+          },
+          "response": []
+        },
+        {
+          "name": "Forbidden - student reads another student (403)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students/2", "host": ["{{base_url}}"], "path": ["students", "2"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{student_token}}", "type": "string" }] },
+            "description": "Object-level authorization: changing the URL id must not expose another student's record."
+          },
+          "response": []
+        },
+        {
+          "name": "Create throwaway student (for delete)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.environment.set('delete_student_id', pm.response.json().data.id);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"student_number\": \"DEL-{{$timestamp}}\",\n  \"first_name\": \"Throwaway\",\n  \"last_name\": \"Student\",\n  \"program_id\": {{program_id}},\n  \"year_level\": 1,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/students", "host": ["{{base_url}}"], "path": ["students"] },
+            "description": "Creates a disposable student so the delete example does not remove the chained {{student_id}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete throwaway student (200)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students/{{delete_student_id}}", "host": ["{{base_url}}"], "path": ["students", "{{delete_student_id}}"] },
+            "description": "Deletes the disposable student."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Programs",
+      "description": "CRUD, lifecycle, and dependency protection for programs.",
+      "item": [
+        {
+          "name": "List programs",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/programs?sort=name&direction=asc", "host": ["{{base_url}}"], "path": ["programs"], "query": [{ "key": "sort", "value": "name" }, { "key": "direction", "value": "asc" }] },
+            "description": "Lists programs."
+          },
+          "response": []
+        },
+        {
+          "name": "Create program (201)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.environment.set('program_id', body.data.id);",
+              "pm.environment.set('program_code', body.data.code);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"TEST{{$timestamp}}\",\n  \"name\": \"Postman Test Program\",\n  \"description\": \"Created by the Postman collection.\",\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/programs", "host": ["{{base_url}}"], "path": ["programs"] },
+            "description": "Creates a program. The code uses {{$timestamp}} so re-runs stay unique. Saves {{program_id}} and {{program_code}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Get program",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/programs/{{program_id}}", "host": ["{{base_url}}"], "path": ["programs", "{{program_id}}"] },
+            "description": "Retrieves the program created above."
+          },
+          "response": []
+        },
+        {
+          "name": "Update program",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Test Program (updated)\",\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/programs/{{program_id}}", "host": ["{{base_url}}"], "path": ["programs", "{{program_id}}"] },
+            "description": "Updates the program."
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate program code (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+              "pm.test('Code error present', () => pm.expect(pm.response.json().errors).to.have.property('code'));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"{{program_code}}\",\n  \"name\": \"Another Program\",\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/programs", "host": ["{{base_url}}"], "path": ["programs"] },
+            "description": "Reuses the code just created to prove the unique rule works."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete program with students (409)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+            ] } }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/programs/1", "host": ["{{base_url}}"], "path": ["programs", "1"] },
+            "description": "Program 1 is seeded with students, so deletion is refused with 409 instead of orphaning rows."
+          },
+          "response": []
+        },
+        {
+          "name": "Create throwaway program (for delete)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.environment.set('delete_program_id', pm.response.json().data.id);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"DEL{{$timestamp}}\",\n  \"name\": \"Throwaway Program\",\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/programs", "host": ["{{base_url}}"], "path": ["programs"] },
+            "description": "Creates a disposable program with no students."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete throwaway program (200)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/programs/{{delete_program_id}}", "host": ["{{base_url}}"], "path": ["programs", "{{delete_program_id}}"] },
+            "description": "Deletes the disposable program."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Courses",
+      "description": "CRUD and validation for the course catalog.",
+      "item": [
+        {
+          "name": "List courses",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/courses?per_page=10", "host": ["{{base_url}}"], "path": ["courses"], "query": [{ "key": "per_page", "value": "10" }] },
+            "description": "Lists courses."
+          },
+          "response": []
+        },
+        {
+          "name": "Create course (201)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.environment.set('course_id', body.data.id);",
+              "pm.environment.set('course_code', body.data.course_code);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"course_code\": \"TC{{$timestamp}}\",\n  \"course_title\": \"Postman Test Course\",\n  \"description\": \"Created by the Postman collection.\",\n  \"units\": 3,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/courses", "host": ["{{base_url}}"], "path": ["courses"] },
+            "description": "Creates a course and saves {{course_id}} and {{course_code}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Get course",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/courses/{{course_id}}", "host": ["{{base_url}}"], "path": ["courses", "{{course_id}}"] },
+            "description": "Retrieves the course."
+          },
+          "response": []
+        },
+        {
+          "name": "Update course",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"units\": 4,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/courses/{{course_id}}", "host": ["{{base_url}}"], "path": ["courses", "{{course_id}}"] },
+            "description": "Updates the course."
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate course code (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"course_code\": \"{{course_code}}\",\n  \"course_title\": \"Duplicate Course\",\n  \"units\": 3,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/courses", "host": ["{{base_url}}"], "path": ["courses"] },
+            "description": "Reuses the course code just created."
+          },
+          "response": []
+        },
+        {
+          "name": "Create throwaway course (for delete)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.environment.set('delete_course_id', pm.response.json().data.id);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"course_code\": \"DELC{{$timestamp}}\",\n  \"course_title\": \"Throwaway Course\",\n  \"units\": 1,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/courses", "host": ["{{base_url}}"], "path": ["courses"] },
+            "description": "Creates a disposable course with no offerings."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete throwaway course (200)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/courses/{{delete_course_id}}", "host": ["{{base_url}}"], "path": ["courses", "{{delete_course_id}}"] },
+            "description": "Deletes the disposable course."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Academic Terms",
+      "description": "CRUD and the unique (academic_year, semester) rule.",
+      "item": [
+        {
+          "name": "List academic terms",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/academic-terms", "host": ["{{base_url}}"], "path": ["academic-terms"] },
+            "description": "Lists academic terms."
+          },
+          "response": []
+        },
+        {
+          "name": "Create academic term (201)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.environment.set('academic_term_id', body.data.id);",
+              "pm.environment.set('academic_year', body.data.academic_year);",
+              "pm.environment.set('semester', body.data.semester);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"academic_year\": \"AY-{{$timestamp}}\",\n  \"semester\": 1,\n  \"start_date\": \"2027-08-01\",\n  \"end_date\": \"2027-12-15\",\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/academic-terms", "host": ["{{base_url}}"], "path": ["academic-terms"] },
+            "description": "Creates a term and saves {{academic_term_id}}, {{academic_year}}, {{semester}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Get academic term",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/academic-terms/{{academic_term_id}}", "host": ["{{base_url}}"], "path": ["academic-terms", "{{academic_term_id}}"] },
+            "description": "Retrieves the term."
+          },
+          "response": []
+        },
+        {
+          "name": "Update academic term",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/academic-terms/{{academic_term_id}}", "host": ["{{base_url}}"], "path": ["academic-terms", "{{academic_term_id}}"] },
+            "description": "Updates the term."
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate academic term (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"academic_year\": \"{{academic_year}}\",\n  \"semester\": {{semester}},\n  \"start_date\": \"2027-08-01\",\n  \"end_date\": \"2027-12-15\",\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/academic-terms", "host": ["{{base_url}}"], "path": ["academic-terms"] },
+            "description": "The (academic_year, semester) pair was just created, so the unique rule rejects it."
+          },
+          "response": []
+        },
+        {
+          "name": "Create throwaway term (for delete)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.environment.set('delete_term_id', pm.response.json().data.id);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"academic_year\": \"DEL-{{$timestamp}}\",\n  \"semester\": 3,\n  \"start_date\": \"2028-01-05\",\n  \"end_date\": \"2028-05-30\",\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/academic-terms", "host": ["{{base_url}}"], "path": ["academic-terms"] },
+            "description": "Creates a disposable term with no offerings."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete throwaway term (200)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/academic-terms/{{delete_term_id}}", "host": ["{{base_url}}"], "path": ["academic-terms", "{{delete_term_id}}"] },
+            "description": "Deletes the disposable term."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Course Offerings",
+      "description": "Sections of a course in a term, taught by an instructor. Includes instructor scoping.",
+      "item": [
+        {
+          "name": "List course offerings",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/course-offerings?per_page=10", "host": ["{{base_url}}"], "path": ["course-offerings"], "query": [{ "key": "per_page", "value": "10" }] },
+            "description": "Lists offerings (admin sees all)."
+          },
+          "response": []
+        },
+        {
+          "name": "List course offerings (instructor, scoped)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/course-offerings", "host": ["{{base_url}}"], "path": ["course-offerings"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{instructor_token}}", "type": "string" }] },
+            "description": "An instructor only ever sees their own offerings — the server adds the filter, the client cannot opt out."
+          },
+          "response": []
+        },
+        {
+          "name": "Create course offering (201)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.environment.set('course_offering_id', pm.response.json().data.id);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"course_id\": {{course_id}},\n  \"academic_term_id\": {{academic_term_id}},\n  \"instructor_id\": {{instructor_id}},\n  \"section\": \"Z-1\",\n  \"schedule\": \"MWF 08:00\",\n  \"room\": \"Room 101\",\n  \"capacity\": 40,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/course-offerings", "host": ["{{base_url}}"], "path": ["course-offerings"] },
+            "description": "Creates an offering taught by {{instructor_id}} (default 3 = instructor@example.com). Saves {{course_offering_id}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Get course offering",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/course-offerings/{{course_offering_id}}", "host": ["{{base_url}}"], "path": ["course-offerings", "{{course_offering_id}}"] },
+            "description": "Retrieves the offering with its course, term, instructor, and enrollment count."
+          },
+          "response": []
+        },
+        {
+          "name": "Students in course offering",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/course-offerings/{{course_offering_id}}/students", "host": ["{{base_url}}"], "path": ["course-offerings", "{{course_offering_id}}", "students"] },
+            "description": "Nested route listing the offering's enrolled students."
+          },
+          "response": []
+        },
+        {
+          "name": "Update course offering",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"room\": \"Room 202\",\n  \"capacity\": 45\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/course-offerings/{{course_offering_id}}", "host": ["{{base_url}}"], "path": ["course-offerings", "{{course_offering_id}}"] },
+            "description": "Updates the offering."
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid instructor reference (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+              "pm.test('Instructor error present', () => pm.expect(pm.response.json().errors).to.have.property('instructor_id'));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"course_id\": {{course_id}},\n  \"academic_term_id\": {{academic_term_id}},\n  \"instructor_id\": 999999,\n  \"section\": \"Z-9\",\n  \"schedule\": \"TTH 10:00\",\n  \"capacity\": 30,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/course-offerings", "host": ["{{base_url}}"], "path": ["course-offerings"] },
+            "description": "The instructor must be an existing user whose role is instructor — a plain user id or missing id is rejected."
+          },
+          "response": []
+        },
+        {
+          "name": "Create throwaway offering (for delete)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.environment.set('delete_offering_id', pm.response.json().data.id);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"course_id\": {{course_id}},\n  \"academic_term_id\": {{academic_term_id}},\n  \"instructor_id\": {{instructor_id}},\n  \"section\": \"DEL-1\",\n  \"schedule\": \"SAT 09:00\",\n  \"capacity\": 20,\n  \"status\": \"ACTIVE\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/course-offerings", "host": ["{{base_url}}"], "path": ["course-offerings"] },
+            "description": "Creates a disposable offering with no enrollments."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete throwaway offering (200)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/course-offerings/{{delete_offering_id}}", "host": ["{{base_url}}"], "path": ["course-offerings", "{{delete_offering_id}}"] },
+            "description": "Deletes the disposable offering."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Enrollments",
+      "description": "Enrolling students into offerings, including duplicate protection.",
+      "item": [
+        {
+          "name": "List enrollments",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/enrollments?per_page=10", "host": ["{{base_url}}"], "path": ["enrollments"], "query": [{ "key": "per_page", "value": "10" }] },
+            "description": "Lists enrollments (admin sees all)."
+          },
+          "response": []
+        },
+        {
+          "name": "Create enrollment (201)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.environment.set('enrollment_id', pm.response.json().data.id);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"student_id\": {{student_id}},\n  \"course_offering_id\": {{course_offering_id}}\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/enrollments", "host": ["{{base_url}}"], "path": ["enrollments"] },
+            "description": "Enrolls {{student_id}} into {{course_offering_id}}. Saves {{enrollment_id}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Get enrollment",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/enrollments/{{enrollment_id}}", "host": ["{{base_url}}"], "path": ["enrollments", "{{enrollment_id}}"] },
+            "description": "Retrieves the enrollment with its student, offering, and grade."
+          },
+          "response": []
+        },
+        {
+          "name": "Update enrollment",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ENROLLED\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/enrollments/{{enrollment_id}}", "host": ["{{base_url}}"], "path": ["enrollments", "{{enrollment_id}}"] },
+            "description": "Updates the enrollment status."
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate enrollment (409)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"student_id\": {{student_id}},\n  \"course_offering_id\": {{course_offering_id}}\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/enrollments", "host": ["{{base_url}}"], "path": ["enrollments"] },
+            "description": "The same student in the same offering is prevented (unique constraint + service check)."
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid references (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"student_id\": 999999,\n  \"course_offering_id\": {{course_offering_id}}\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/enrollments", "host": ["{{base_url}}"], "path": ["enrollments"] },
+            "description": "A student_id that does not exist must fail validation."
+          },
+          "response": []
+        },
+        {
+          "name": "Forbidden - student lists all enrollments (403)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/enrollments", "host": ["{{base_url}}"], "path": ["enrollments"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{student_token}}", "type": "string" }] },
+            "description": "A student may not list the whole enrollment table."
+          },
+          "response": []
+        },
+        {
+          "name": "Create second enrollment (for delete)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "pm.environment.set('delete_enrollment_id', pm.response.json().data.id);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"student_id\": 2,\n  \"course_offering_id\": {{course_offering_id}}\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/enrollments", "host": ["{{base_url}}"], "path": ["enrollments"] },
+            "description": "Enrolls a different seeded student (id 2) into the same offering, so it can be deleted."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete second enrollment (200)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/enrollments/{{delete_enrollment_id}}", "host": ["{{base_url}}"], "path": ["enrollments", "{{delete_enrollment_id}}"] },
+            "description": "Drops the extra enrollment, leaving the main one for the Grades folder."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Grades",
+      "description": "Grade entry and instructor-level authorization. Grades are updated, never deleted.",
+      "item": [
+        {
+          "name": "List grades",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/grades?per_page=10", "host": ["{{base_url}}"], "path": ["grades"], "query": [{ "key": "per_page", "value": "10" }] },
+            "description": "Lists grades (admin sees all)."
+          },
+          "response": []
+        },
+        {
+          "name": "Create grade (201)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.environment.set('grade_id', body.data.id);",
+              "pm.test('Remarks computed', () => pm.expect(body.data.remarks).to.be.oneOf(['PASSED', 'FAILED', 'IN PROGRESS']));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"enrollment_id\": {{enrollment_id}},\n  \"midterm_grade\": 88,\n  \"final_grade\": 90\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/grades", "host": ["{{base_url}}"], "path": ["grades"] },
+            "description": "Creates a grade for {{enrollment_id}}. `remarks` is derived by the model (90 => PASSED)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get grade",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/grades/{{grade_id}}", "host": ["{{base_url}}"], "path": ["grades", "{{grade_id}}"] },
+            "description": "Retrieves the grade."
+          },
+          "response": []
+        },
+        {
+          "name": "Update grade (admin)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"final_grade\": 91\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/grades/{{grade_id}}", "host": ["{{base_url}}"], "path": ["grades", "{{grade_id}}"] },
+            "description": "Administrator can update any grade."
+          },
+          "response": []
+        },
+        {
+          "name": "Update grade (owning instructor)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"midterm_grade\": 89\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/grades/{{grade_id}}", "host": ["{{base_url}}"], "path": ["grades", "{{grade_id}}"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{instructor_token}}", "type": "string" }] },
+            "description": "Instructor One teaches the offering, so the grade is theirs to edit."
+          },
+          "response": []
+        },
+        {
+          "name": "Forbidden - other instructor updates grade (403)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+            ] } }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"final_grade\": 60\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/grades/{{grade_id}}", "host": ["{{base_url}}"], "path": ["grades", "{{grade_id}}"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{instructor2_token}}", "type": "string" }] },
+            "description": "Instructor Two does not own this offering, so the grade is off-limits."
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid enrollment (422)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 422', () => pm.response.to.have.status(422));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"enrollment_id\": 999999,\n  \"final_grade\": 85\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/grades", "host": ["{{base_url}}"], "path": ["grades"] },
+            "description": "A grade must reference an existing enrollment."
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate grade (409)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"enrollment_id\": {{enrollment_id}},\n  \"final_grade\": 75\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/grades", "host": ["{{base_url}}"], "path": ["grades"] },
+            "description": "One grade per enrollment: a second grade for the same enrollment is refused."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Academic Records",
+      "description": "A student's academic record grouped by academic term, with object-level authorization.",
+      "item": [
+        {
+          "name": "Academic record (admin)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Grouped by term', () => pm.expect(pm.response.json().data).to.have.property('academic_record'));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students/1/academic-record", "host": ["{{base_url}}"], "path": ["students", "1", "academic-record"] },
+            "description": "Administrator reads student 1's record, grouped by academic term."
+          },
+          "response": []
+        },
+        {
+          "name": "Academic record (own, as student)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students/1/academic-record", "host": ["{{base_url}}"], "path": ["students", "1", "academic-record"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{student_token}}", "type": "string" }] },
+            "description": "The demo student account is linked to student 1, so it can read its own record."
+          },
+          "response": []
+        },
+        {
+          "name": "Forbidden - other student's record (403)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+            ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/students/2/academic-record", "host": ["{{base_url}}"], "path": ["students", "2", "academic-record"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{student_token}}", "type": "string" }] },
+            "description": "Changing the id to another student must return 403 — object-level authorization."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

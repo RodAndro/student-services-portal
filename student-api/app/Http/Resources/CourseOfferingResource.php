@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class CourseOfferingResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'course_id' => $this->course_id,
+            'course' => $this->whenLoaded('course', fn () => new CourseResource($this->course)),
+            'academic_term_id' => $this->academic_term_id,
+            'academic_term' => $this->whenLoaded('academicTerm', fn () => new AcademicTermResource($this->academicTerm)),
+            'instructor_id' => $this->instructor_id,
+            'instructor' => $this->whenLoaded('instructor', fn () => new UserResource($this->instructor)),
+            'section' => $this->section,
+            'schedule' => $this->schedule,
+            'room' => $this->room,
+            'capacity' => $this->capacity,
+            'enrollments_count' => $this->whenCounted('enrollments'),
+            'status' => $this->status,
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+        ];
+    }
+}
