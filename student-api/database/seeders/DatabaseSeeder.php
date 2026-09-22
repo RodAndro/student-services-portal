@@ -98,7 +98,7 @@ class DatabaseSeeder extends Seeder
         while ($created < 200) {
             $studentId = $students->random()->id;
             $offeringId = $offerings->random()->id;
-            $key = $studentId . '-' . $offeringId;
+            $key = $studentId.'-'.$offeringId;
 
             if (isset($used[$key])) {
                 continue;

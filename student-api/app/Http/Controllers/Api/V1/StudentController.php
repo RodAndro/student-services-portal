@@ -150,7 +150,7 @@ class StudentController extends Controller
                     ])->values(),
                 ];
             })
-            ->sortByDesc(fn ($item) => $item['academic_term']->academic_year . str_pad((string) $item['academic_term']->semester, 2, '0', STR_PAD_LEFT))
+            ->sortByDesc(fn ($item) => $item['academic_term']->academic_year.str_pad((string) $item['academic_term']->semester, 2, '0', STR_PAD_LEFT))
             ->values();
 
         return ApiResponse::success([
