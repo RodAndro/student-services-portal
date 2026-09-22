@@ -87,4 +87,46 @@ class AcademicTermTest extends TestCase
 
         $this->assertDatabaseHas('academic_terms', ['id' => $term->id]);
     }
+
+    public function test_updating_a_term_end_date_before_the_existing_start_date_is_rejected(): void
+    {
+        $term = AcademicTerm::factory()->create([
+            'start_date' => '2027-08-01',
+            'end_date' => '2027-12-15',
+        ]);
+
+        $this->putJson("/api/v1/academic-terms/{$term->id}", [
+            'end_date' => '2027-07-01',
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('end_date');
+
+        $this->assertDatabaseHas('academic_terms', ['id' => $term->id, 'end_date' => '2027-12-15']);
+    }
+
+    public function test_updating_a_term_with_both_dates_end_before_start_is_rejected(): void
+    {
+        $term = AcademicTerm::factory()->create();
+
+        $this->putJson("/api/v1/academic-terms/{$term->id}", [
+            'start_date' => '2027-08-01',
+            'end_date' => '2027-07-01',
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('end_date');
+    }
+
+    public function test_updating_a_term_end_date_only_is_allowed_when_after_the_start_date(): void
+    {
+        $term = AcademicTerm::factory()->create([
+            'start_date' => '2027-08-01',
+            'end_date' => '2027-12-15',
+        ]);
+
+        $this->putJson("/api/v1/academic-terms/{$term->id}", [
+            'end_date' => '2027-12-20',
+        ])
+            ->assertStatus(200)
+            ->assertJsonPath('data.end_date', '2027-12-20');
+    }
 }

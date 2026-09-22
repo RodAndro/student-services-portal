@@ -5,13 +5,12 @@ activity (Student Information Management REST API).
 
 **Legend:** ✅ COMPLETE · ⚠️ NEEDS FIX · ❌ NOT IMPLEMENTED
 
-**Summary:** 48 items — **47 COMPLETE**, **1 NEEDS FIX** (commit the project to Git), **0 NOT
-IMPLEMENTED**.
+**Summary:** 48 items — **48 COMPLETE**, **0 NEEDS FIX**, **0 NOT IMPLEMENTED**.
 
 | Requirement | Implemented? | File / Route | Test Evidence |
 | --- | --- | --- | --- |
 | **§1 Technology stack** — Laravel 12, PHP 8.2+, MySQL, Eloquent, Sanctum, PHPUnit, OpenAPI/Postman | ✅ COMPLETE | `composer.json`, `.env`, `config/scramble.php` | Full suite runs on Laravel 12 + MySQL |
-| **§1 Version control (Git/GitHub)** | ⚠️ NEEDS FIX | `student-api/` | `git ls-files student-api` returns 0 — the project folder is not committed yet. See *Open items* below. |
+| **§1 Version control (Git/GitHub)** | ✅ COMPLETE | `student-api/` | committed in `0f93d8a` (137 files); `student-api/.env` is gitignored |
 | **§5 Role: Administrator** | ✅ COMPLETE | `app/Models/User.php`, `app/Policies/*` | `AuthorizationTest > administrator can access a protected resource` |
 | **§5 Role: Registrar / Staff** | ✅ COMPLETE | `app/Policies/*` (`before()` grants staff) | `AuthorizationTest > registrar can access students` |
 | **§5 Role: Instructor** | ✅ COMPLETE | `CourseOfferingPolicy`, `GradePolicy` | `AuthorizationTest > instructor only sees their own course offerings`, `…cannot update a grade in another offering` |
@@ -70,7 +69,7 @@ IMPLEMENTED**.
 | **§24 No password hashes/secrets in responses** | ✅ COMPLETE | `User::$hidden`, `UserResource` | `AuthenticationTest > login never returns the password hash` |
 | **§24 No real credentials committed** | ✅ COMPLETE | `.gitignore` (`.env`) | `.env.example` contains placeholders only |
 | **§25 Clean Laravel structure (models, migrations, seeders, factories, controllers, requests, resources, policies, routes, tests)** | ✅ COMPLETE | `app/`, `database/`, `routes/`, `tests/` | directory listing |
-| **§26 Automated tests (auth, students, authorization, enrollment, grades, collections)** | ✅ COMPLETE | `tests/Feature/*`, `tests/Unit/*` | **64 tests / 178 assertions passing** |
+| **§26 Automated tests (auth, students, authorization, enrollment, grades, collections)** | ✅ COMPLETE | `tests/Feature/*`, `tests/Unit/*` | **68 tests present** across 10 files (incl. term-update date validation + duplicate-enrollment-on-update); run `php artisan test` for the pass/assertion count |
 | **§27 API documentation (Swagger/OpenAPI)** | ✅ COMPLETE | `config/scramble.php`, `/api/docs`, `/api/docs.json` | generated from code; `200` live |
 | **§28 Postman collection (9 folders, env vars, success + failure)** | ✅ COMPLETE | `postman/Student-API.postman_collection.json` (+ environment) | 9 folders, 73 requests; chain verified 51/51 |
 | **§29 README (all required sections)** | ✅ COMPLETE | `README.md` | — |
@@ -85,21 +84,10 @@ IMPLEMENTED**.
 
 ## Open items
 
-### 1. The project is not committed to Git — ⚠️ NEEDS FIX
+None outstanding. The backend is committed to Git (`0f93d8a`, 137 files), and `student-api/.env`
+is gitignored, so no secrets were committed.
 
-`student-api/` currently exists only in the working directory: `git ls-files student-api` returns
-nothing. The laboratory requires **Git/GitHub version control**. To finish this:
-
-```bash
-cd ..
-git add student-api
-git commit -m "feat: student information management REST API (phases 1-10)"
-```
-
-`student-api/.env` is already covered by `student-api/.gitignore`, so no secrets would be
-committed. (This is intentionally left for you to run, since it is a shared-state change.)
-
-### 2. Non-blocking notes
+### Non-blocking notes
 
 - `APP_DEBUG=true` is fine for local development; set `APP_DEBUG=false` for any real deployment.
 - The OpenAPI docs routes are restricted to the `local` environment by Scramble's

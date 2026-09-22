@@ -93,7 +93,23 @@ class EnrollmentController extends Controller
     {
         $this->authorize('update', $enrollment);
 
-        $enrollment->update($request->validated());
+        $data = $request->validated();
+
+        // A partial update may change only one side of the pair, so resolve the
+        // effective pair from the request with the existing record as fallback.
+        $studentId = $data['student_id'] ?? $enrollment->student_id;
+        $offeringId = $data['course_offering_id'] ?? $enrollment->course_offering_id;
+
+        $duplicate = Enrollment::where('student_id', $studentId)
+            ->where('course_offering_id', $offeringId)
+            ->where('id', '!=', $enrollment->id)
+            ->exists();
+
+        if ($duplicate) {
+            return ApiResponse::error('The student is already enrolled in this course offering.', 409);
+        }
+
+        $enrollment->update($data);
         $enrollment->load(self::RELATIONS);
 
         return ApiResponse::success(new EnrollmentResource($enrollment), 'Enrollment updated successfully.');

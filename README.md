@@ -1,58 +1,50 @@
-# Student Services Portal
+# Student Information Management — REST API + Web Frontend
 
-## Project Description
+This repository contains the **Student Information Management** system, delivered as two projects
+plus the documentation that ties them together:
 
-The Student Services Portal is a TypeScript-based sample project for modeling student records, validating external data, and formatting student status information in a user-friendly way.
+| Path | What it is |
+| --- | --- |
+| [`student-api/`](student-api/README.md) | The backend — a **Laravel 12 + Laravel Sanctum REST API** versioned under `/api/v1` (MySQL). |
+| [`student-web/`](student-web/README.md) | The frontend — a **React 19 + Vite + TypeScript** single-page app that consumes the REST API over HTTP. |
+| [`docs/`](docs/) | Cross-project documentation: the exhaustive API contract and the backend-vs-frontend requirements map. |
+| [`src/`](src/) | A small **legacy TypeScript sample** (Activity I status formatter). Not part of the API or frontend. |
 
-## Requirements
+The REST API is the authoritative backend; the web client is a thin consumer that treats the API as
+the source of truth (no database connection, no mock API, no invented endpoints).
 
-- Node.js 18 or later
-- npm
-- Git
+## Getting started
 
-## Installation Instructions
+Each project has its own setup. Follow the project README for the part you need:
 
-1. Clone the repository.
-2. Navigate to the project folder.
-3. Install dependencies:
+- **Backend (REST API):** see [`student-api/README.md`](student-api/README.md)
+  - `composer install` → `cp .env.example .env` → `php artisan key:generate`
+  - create the MySQL database, then `php artisan migrate:fresh --seed`
+  - `php artisan serve` → API at `http://127.0.0.1:8000/api/v1`
+- **Frontend:** see [`student-web/README.md`](student-web/README.md)
+  - `npm install` → `npm run dev` → app at `http://localhost:5173`
+  - the Vite dev proxy forwards `/api/*` to the Laravel backend
 
-```bash
-npm install
-```
+## Testing
 
-## How to Run the Project
+- **Backend:** `php artisan test` (from `student-api/`). Requires a MySQL `student_api_testing`
+  database (see [`student-api/README.md`](student-api/README.md)).
+- **Frontend:** `npm test` (from `student-web/`). Uses Vitest + Testing Library against a mocked
+  HTTP boundary; no database needed.
 
-Compile the TypeScript source and run the app:
+## Documentation
 
-```bash
-npm run build
-node dist/index.js
-```
+- API reference / contract: [`docs/API-CONTRACT.md`](docs/API-CONTRACT.md)
+- Live OpenAPI docs (backend running): `http://127.0.0.1:8000/api/docs`
+- Backend ERD: [`student-api/docs/ERD.md`](student-api/docs/ERD.md)
+- Frontend architecture / AI log: [`student-web/docs/`](student-web/docs/)
 
-## How to Run Linting
+## AI-assisted development
 
-```bash
-npm run lint
-```
+This project was built with an instructor-approved AI coding assistant in small, verifiable phases.
+The authoritative records are:
 
-## How to Format Code
-
-```bash
-npm run format
-```
-
-## Development Workflow
-
-1. Make code changes in the TypeScript files.
-2. Run formatting as needed.
-3. Run linting to catch quality issues.
-4. Build the project to verify it compiles.
-5. Test the behavior and verify output before committing.
-
-## AI Usage Policy
-
-- AI can assist with development tasks.
-- AI-generated code must be reviewed by a human developer.
-- Code should be modified when necessary to meet project requirements and quality expectations.
-- Code must be tested before it is considered complete.
-- Code must be verified before committing or pushing changes.
+- Backend AI usage & verification: [`student-api/README.md`](student-api/README.md) ("AI Tools Used"
+  and "How AI-Generated Code Was Reviewed and Verified").
+- Frontend AI development log: [`student-web/docs/AI-DEVELOPMENT-LOG.md`](student-web/docs/AI-DEVELOPMENT-LOG.md).
+- Top-level summary: [`AI_LAB_NOTEBOOK.md`](AI_LAB_NOTEBOOK.md).

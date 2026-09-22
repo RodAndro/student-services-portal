@@ -336,7 +336,9 @@ Coverage:
 | Academic terms | `tests/Feature/AcademicTermTest.php` | valid/unknown status, date rules, unique term, delete guarded by offerings |
 | Unit | `tests/Unit/GradeRemarksTest.php` | the grade remarks rule as pure logic |
 
-The suite currently contains **64 tests / 178 assertions**, all passing.
+The suite currently contains **68 tests** across 10 files, including academic-term update date
+validation and duplicate-enrollment-on-update. Run `php artisan test` against the
+`student_api_testing` database and capture the pass/assertion count as submission evidence.
 
 ## Development Test Accounts
 

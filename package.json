@@ -1,13 +1,12 @@
 {
   "name": "student-services-portal",
   "version": "1.0.0",
-  "description": "Student services portal TypeScript examples",
+  "description": "Legacy Activity I TypeScript sample (src/). The REST API is in student-api/ and the frontend in student-web/.",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\" \"*.json\"",
-    "test": "echo \"No tests configured yet\" && exit 0"
+    "format": "prettier --write \"src/**/*.ts\" \"*.json\""
   },
   "keywords": [
     "students",

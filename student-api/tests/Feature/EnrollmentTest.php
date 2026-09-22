@@ -117,4 +117,32 @@ class EnrollmentTest extends TestCase
             ->assertStatus(200)
             ->assertJsonPath('meta.total', 3);
     }
+
+    public function test_updating_an_enrollment_to_a_duplicate_pair_is_rejected(): void
+    {
+        Sanctum::actingAs(User::factory()->registrar()->create());
+        $student = Student::factory()->create();
+        $offeringA = CourseOffering::factory()->create(['capacity' => 40]);
+        $offeringB = CourseOffering::factory()->create(['capacity' => 40]);
+
+        Enrollment::factory()->create([
+            'student_id' => $student->id,
+            'course_offering_id' => $offeringA->id,
+        ]);
+        $enrollment = Enrollment::factory()->create([
+            'student_id' => $student->id,
+            'course_offering_id' => $offeringB->id,
+        ]);
+
+        $this->patchJson("/api/v1/enrollments/{$enrollment->id}", [
+            'course_offering_id' => $offeringA->id,
+        ])
+            ->assertStatus(409)
+            ->assertJsonPath('success', false);
+
+        $this->assertDatabaseHas('enrollments', [
+            'id' => $enrollment->id,
+            'course_offering_id' => $offeringB->id,
+        ]);
+    }
 }
